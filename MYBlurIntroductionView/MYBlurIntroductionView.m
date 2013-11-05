@@ -21,6 +21,28 @@
     return self;
 }
 
+//-(void)didMoveToSuperview {
+//	
+//	[super didMoveToSuperview];
+//	
+//	if (self.LanguageDirection == MYLanguageDirectionRightToLeft) {
+//		
+//		//Trigger the panel did appear method in the
+//		if ([Panels[Panels.count-1 - self.CurrentPanelIndex] respondsToSelector:@selector(panelDidAppear)]) {
+//			[Panels[Panels.count-1 - self.CurrentPanelIndex] panelDidAppear];
+//		}
+//		
+//	} else {
+//		
+//		//Trigger the panel did appear method for the first panel after creation
+//		if ([Panels[self.CurrentPanelIndex] respondsToSelector:@selector(panelDidAppear)]) {
+//			[Panels[self.CurrentPanelIndex] panelDidAppear];
+//		}
+//		
+//	}
+//	
+//}
+
 -(void)initializeViewComponents{
     //Background Image View
     self.BackgroundImageView = [[UIImageView alloc] initWithFrame:self.frame];
@@ -145,6 +167,7 @@
     
     //Show the information at the first panel with animations
     [self animatePanelAtIndex:0];
+	
 }
 
 -(void)buildScrollViewRightToLeft{
@@ -168,6 +191,7 @@
     
     //Show the information at the first panel with animations
     [self animatePanelAtIndex:0];
+	
 }
 
 /*
@@ -185,76 +209,91 @@
     
 }
 
--(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView{
+-(void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
+	
     if (self.LanguageDirection == MYLanguageDirectionLeftToRight) {
-        self.CurrentPanelIndex = scrollView.contentOffset.x/self.MasterScrollView.frame.size.width;
-        
-        //Trigger the finish if you are at the end
-        if (self.CurrentPanelIndex == (Panels.count)) {
-            //Trigger the panel didDisappear appear method in the
-            if ([Panels[self.PageControl.currentPage] respondsToSelector:@selector(panelDidDisappear)]) {
-                [Panels[self.PageControl.currentPage] panelDidDisappear];
-            }
-            if ([(id)delegate respondsToSelector:@selector(introduction:didFinishWithType:)]) {
-                [delegate introduction:self didFinishWithType:MYFinishTypeSwipeOut];
-            }
-        }
-        else {
-            //Assign the last page to be the previous current page
-            LastPanelIndex = self.PageControl.currentPage;
-            
-            //Trigger the panel did appear method in the
-            if ([Panels[LastPanelIndex] respondsToSelector:@selector(panelDidDisappear)]) {
-                [Panels[LastPanelIndex] panelDidDisappear];
-            }
-            
-            //Update Page Control
-            self.PageControl.currentPage = self.CurrentPanelIndex;
-            
-            //Call Back, if applicable
-            if (LastPanelIndex != self.CurrentPanelIndex) { //Keeps from making the callback when just bouncing and not actually changing pages
-                if ([(id)delegate respondsToSelector:@selector(introduction:didChangeToPanel:withIndex:)]) {
-                    [delegate introduction:self didChangeToPanel:Panels[self.CurrentPanelIndex] withIndex:self.CurrentPanelIndex];
-                }
-                
-                //Trigger the panel did appear method in the
-                if ([Panels[self.CurrentPanelIndex] respondsToSelector:@selector(panelDidAppear)]) {
-                    [Panels[self.CurrentPanelIndex] panelDidAppear];
-                }
-                
-                //Animate content to pop in nicely! :-)
-                [self animatePanelAtIndex:self.CurrentPanelIndex];
-            }
-        }
-    }
-    else if(self.LanguageDirection == MYLanguageDirectionRightToLeft){
-        self.CurrentPanelIndex = (scrollView.contentOffset.x-self.frame.size.width)/self.MasterScrollView.frame.size.width;
-        
-        //remove self if you are at the end of the introduction
-        if (self.CurrentPanelIndex == -1) {
-            if ([(id)delegate respondsToSelector:@selector(introduction:didFinishWithType:)]) {
-                [delegate introduction:self didFinishWithType:MYFinishTypeSwipeOut];
-            }
-        }
-        else {
-            //Update Page Control
-            LastPanelIndex = self.PageControl.currentPage;
-            self.PageControl.currentPage = self.CurrentPanelIndex;
-            
-            //Call Back, if applicable
-            if (LastPanelIndex != self.CurrentPanelIndex) { //Keeps from making the callback when just bouncing and not actually changing pages
-                if ([(id)delegate respondsToSelector:@selector(introduction:didChangeToPanel:withIndex:)]) {
-                    [delegate introduction:self didChangeToPanel:Panels[Panels.count-1 - self.CurrentPanelIndex] withIndex:Panels.count-1 - self.CurrentPanelIndex];
-                }
-                //Trigger the panel did appear method in the
-                if ([Panels[Panels.count-1 - self.CurrentPanelIndex] respondsToSelector:@selector(panelDidAppear)]) {
-                    [Panels[Panels.count-1 - self.CurrentPanelIndex] panelDidAppear];
-                }
-                
-                //Animate content to pop in nicely! :-)
-                [self animatePanelAtIndex:Panels.count-1 - self.CurrentPanelIndex];
-            }
-        }
+		
+		NSInteger newIndex	= scrollView.contentOffset.x / self.MasterScrollView.frame.size.width;
+		
+		if (newIndex != self.CurrentPanelIndex) {
+			
+			self.CurrentPanelIndex = newIndex;
+			
+			//Trigger the finish if you are at the end
+			if (self.CurrentPanelIndex == (Panels.count)) {
+				//Trigger the panel didDisappear appear method in the
+				if ([Panels[self.PageControl.currentPage] respondsToSelector:@selector(panelDidDisappear)]) {
+					[Panels[self.PageControl.currentPage] panelDidDisappear];
+				}
+				if ([(id)delegate respondsToSelector:@selector(introduction:didFinishWithType:)]) {
+					[delegate introduction:self didFinishWithType:MYFinishTypeSwipeOut];
+				}
+			} else {
+				//Assign the last page to be the previous current page
+				LastPanelIndex = self.PageControl.currentPage;
+				
+				//Trigger the panel did appear method in the
+				if ([Panels[LastPanelIndex] respondsToSelector:@selector(panelDidDisappear)]) {
+					[Panels[LastPanelIndex] panelDidDisappear];
+				}
+				
+				//Update Page Control
+				self.PageControl.currentPage = self.CurrentPanelIndex;
+				
+				//Call Back, if applicable
+				if (LastPanelIndex != self.CurrentPanelIndex) { //Keeps from making the callback when just bouncing and not actually changing pages
+					if ([(id)delegate respondsToSelector:@selector(introduction:didChangeToPanel:withIndex:)]) {
+						[delegate introduction:self didChangeToPanel:Panels[self.CurrentPanelIndex] withIndex:self.CurrentPanelIndex];
+					}
+					
+					//Trigger the panel did appear method in the
+					if ([Panels[self.CurrentPanelIndex] respondsToSelector:@selector(panelDidAppear)]) {
+						[Panels[self.CurrentPanelIndex] panelDidAppear];
+					}
+					
+					//Animate content to pop in nicely! :-)
+					[self animatePanelAtIndex:self.CurrentPanelIndex];
+				}
+			}
+			
+		}
+		
+    } else if (self.LanguageDirection == MYLanguageDirectionRightToLeft) {
+		
+		NSInteger newIndex	= (scrollView.contentOffset.x - self.frame.size.width) / self.MasterScrollView.frame.size.width;
+		
+		if (newIndex != self.CurrentPanelIndex) {
+		
+			self.CurrentPanelIndex = newIndex;
+			
+			//remove self if you are at the end of the introduction
+			if (self.CurrentPanelIndex == -1) {
+				
+				if ([(id)delegate respondsToSelector:@selector(introduction:didFinishWithType:)]) {
+					[delegate introduction:self didFinishWithType:MYFinishTypeSwipeOut];
+				}
+				
+			} else {
+				//Update Page Control
+				LastPanelIndex = self.PageControl.currentPage;
+				self.PageControl.currentPage = self.CurrentPanelIndex;
+				
+				//Call Back, if applicable
+				if (LastPanelIndex != self.CurrentPanelIndex) { //Keeps from making the callback when just bouncing and not actually changing pages
+					if ([(id)delegate respondsToSelector:@selector(introduction:didChangeToPanel:withIndex:)]) {
+						[delegate introduction:self didChangeToPanel:Panels[Panels.count-1 - self.CurrentPanelIndex] withIndex:Panels.count-1 - self.CurrentPanelIndex];
+					}
+					//Trigger the panel did appear method in the
+					if ([Panels[Panels.count-1 - self.CurrentPanelIndex] respondsToSelector:@selector(panelDidAppear)]) {
+						[Panels[Panels.count-1 - self.CurrentPanelIndex] panelDidAppear];
+					}
+					
+					//Animate content to pop in nicely! :-)
+					[self animatePanelAtIndex:Panels.count-1 - self.CurrentPanelIndex];
+				}
+			}
+			
+		}
     }
 }
 
@@ -360,8 +399,39 @@
     } completion:nil];
 }
 
--(void)changeToPanelAtIndex:(NSInteger)index{
+-(void)changeToPanelAtIndex:(NSInteger)index {
+	
+	NSInteger panelNumber	= 0;
+	
+	if (index >= 0 && index < Panels.count) {
+		panelNumber	= index;
+	}
+	
+	self.alpha							= 1.0;
+	self.MasterScrollView.contentOffset	= CGPointMake(self.frame.size.width * panelNumber, 0);
     
+    self.PageControl.currentPage		= panelNumber;
+	self.CurrentPanelIndex				= panelNumber;
+    
+    //Show the information at the new panel with animations
+    [self animatePanelAtIndex:panelNumber];
+	
+	if (self.LanguageDirection == MYLanguageDirectionRightToLeft) {
+		
+		//Trigger the panel did appear method in the
+		if ([Panels[Panels.count-1 - self.CurrentPanelIndex] respondsToSelector:@selector(panelDidAppear)]) {
+			[Panels[Panels.count-1 - self.CurrentPanelIndex] panelDidAppear];
+		}
+		
+	} else {
+		
+		//Trigger the panel did appear method for the first panel after creation
+		if ([Panels[self.CurrentPanelIndex] respondsToSelector:@selector(panelDidAppear)]) {
+			[Panels[self.CurrentPanelIndex] panelDidAppear];
+		}
+		
+	}
+	
 }
 
 -(void)setEnabled:(BOOL)enabled{
